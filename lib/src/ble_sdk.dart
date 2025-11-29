@@ -1,6 +1,6 @@
 import 'package:ble_parser/constants/device_constant.dart';
 import 'package:ble_parser/utils/extensions.dart';
-import 'package:ble_parser/utils/resolve_util.dart';
+import 'package:ble_parser/src/resolve_util.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
@@ -68,7 +68,9 @@ class BleSDK {
   static void dataParsing(
     BluetoothDevice device,
     List<int> data, {
-    void Function(BluetoothDevice device, int deviceConstant, List<int> data, Map<String, dynamic> parsedData)? onParsed,
+    void Function(BluetoothDevice device, int deviceConstant, List<int> data,
+            Map<String, dynamic> parsedData)?
+        onParsed,
   }) {
     if (kDebugMode) {
       print("Received data: ${data.bytes.toHexString()}");

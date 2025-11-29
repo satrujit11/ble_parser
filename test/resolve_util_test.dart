@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'package:ble_parser/constants/ble_const.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ble_parser/utils/resolve_util.dart';
+import 'package:ble_parser/src/resolve_util.dart';
 import 'package:ble_parser/constants/device_key.dart';
 
 void main() {

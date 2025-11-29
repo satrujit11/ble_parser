@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:ble_parser/constants/manufacture_support.constants.dart';
 import 'package:ble_parser/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
@@ -18,6 +19,63 @@ class BleManager {
 
   Stream<NotificationEvent> get notificationStream =>
       _notificationController.stream;
+
+  Future<bool> ensureBluetoothOn({
+    Duration timeout = const Duration(seconds: 30),
+  }) async {
+    // 1. Hardware support
+    if (!await FlutterBluePlus.isSupported) {
+      debugPrint("Bluetooth not supported on this device");
+      return false;
+    }
+
+    FlutterBluePlus.setOptions(
+      restoreState: true,
+      showPowerAlert: true,
+    );
+
+    // 2. Already ON → fast path
+    if (FlutterBluePlus.adapterStateNow == BluetoothAdapterState.on) {
+      debugPrint("Bluetooth already ON");
+      return true;
+    }
+
+    // 3. iOS → cannot auto-enable
+    if (Platform.isIOS) {
+      debugPrint("iOS: Bluetooth is OFF → please enable in Settings");
+      return false;
+    }
+
+    // 4. Android → request + wait for real state change
+    if (Platform.isAndroid) {
+      debugPrint("Android: Bluetooth OFF → requesting turn on...");
+
+      // Fire the system dialog
+      FlutterBluePlus.turnOn(); // void → ignore
+
+      try {
+        await FlutterBluePlus.adapterState
+            .where((state) => state == BluetoothAdapterState.on)
+            .first
+            .timeout(timeout, onTimeout: () {
+          throw TimeoutException(
+            "User did not turn on Bluetooth within ${timeout.inSeconds}s",
+          );
+        });
+
+        debugPrint("Bluetooth is now ON and ready!");
+        return true;
+      } on TimeoutException catch (e) {
+        debugPrint("Timeout waiting for Bluetooth ON: $e");
+        return false;
+      } catch (e) {
+        debugPrint("Unexpected error waiting for Bluetooth: $e");
+        return false;
+      }
+    }
+
+    return false;
+  }
 
   /// Scan for devices by optional name filter
   Stream<ScanResult> scan({
@@ -93,7 +151,7 @@ class BleManager {
   Future<bool> write(
     BluetoothDevice device,
     int charUuid,
-    List<int> data, {
+    Uint8List data, {
     bool withoutResponse = false, // ← default to safe!
   }) async {
     final String id = device.remoteId.toString();
@@ -104,7 +162,7 @@ class BleManager {
     }
 
     try {
-      await c.write(data.bytes, withoutResponse: withoutResponse);
+      await c.write(data.toListInt, withoutResponse: withoutResponse);
       debugPrint("Write SUCCESS: ${data.hex}");
       return true;
     } catch (e) {
@@ -136,7 +194,7 @@ class BleManager {
 
       // Keep subscription so we can cancel on disconnect
       _notifySubscriptions[device.remoteId.toString()] = stream.listen((data) {
-        final event = NotificationEvent(device, data.bytes);
+        final event = NotificationEvent(device, data);
         _notificationController.add(event); // emit globally
       });
 
@@ -154,7 +212,7 @@ class BleManager {
 /// Model for notification event
 class NotificationEvent {
   final BluetoothDevice device;
-  final Uint8List bytes;
+  final List<int> bytes;
 
   NotificationEvent(this.device, this.bytes);
 }

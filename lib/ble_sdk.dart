@@ -2,6 +2,7 @@ import 'package:ble_parser/constants/device_constant.dart';
 import 'package:ble_parser/utils/extensions.dart';
 import 'package:ble_parser/utils/resolve_util.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 /// BLE SDK utilities for encoding time into the device-specific format.
 class BleSDK {
@@ -65,11 +66,12 @@ class BleSDK {
 
   // This is set to parse upcoming data, it meant to used inside [BleManager.notify] to parse streamed data
   static void dataParsing(
-    Uint8List data, {
-    void Function(Uint8List data, Map<String, dynamic> parsedData)? onParsed,
+    BluetoothDevice device,
+    List<int> data, {
+    void Function(BluetoothDevice device, int deviceConstant, List<int> data, Map<String, dynamic> parsedData)? onParsed,
   }) {
     if (kDebugMode) {
-      print("Received data: ${data.toHexString()}");
+      print("Received data: ${data.bytes.toHexString()}");
     }
 
     if (data.length == 0) {
@@ -79,12 +81,14 @@ class BleSDK {
 
     Map<String, dynamic>? parsedData;
 
+    Uint8List bytes = data.bytes;
+
     switch (data[0]) {
       case DeviceConst.CMD_GET_TIME:
-        parsedData = ResolveUtil.getDeviceTime(data);
+        parsedData = ResolveUtil.getDeviceTime(bytes);
         break;
       case DeviceConst.CMD_SET_TIME:
-        parsedData = ResolveUtil.setDeviceTimeSuccessful(data);
+        parsedData = ResolveUtil.setDeviceTimeSuccessful(bytes);
         break;
       default:
         // Unknown command → do nothing
@@ -93,6 +97,6 @@ class BleSDK {
 
     debugPrint("Parsed: $parsedData");
     // Only call if someone is listening
-    onParsed?.call(data, parsedData);
+    onParsed?.call(device, data[0], data, parsedData);
   }
 }

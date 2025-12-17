@@ -1,4 +1,6 @@
+import 'package:ble_parser/constants/auto_testmode.dart';
 import 'package:ble_parser/constants/device_constant.dart';
+import 'package:ble_parser/models/personal_info.model.dart';
 import 'package:ble_parser/utils/extensions.dart';
 import 'package:ble_parser/src/resolve_util.dart';
 import 'package:flutter/foundation.dart';
@@ -60,8 +62,39 @@ class BleSDK {
         .withCrc();
   }
 
+  static Future<Uint8List> setPersonalInfo(PersonalInfo info) async {
+    return (Uint8List(16)
+          ..[0] = DeviceConst.CMD_SET_USER_INFO
+          ..[1] = info.sex.byte
+          ..[2] = info.age.byte
+          ..[3] = info.height.byte
+          ..[4] = info.weight.byte
+          ..[5] = info.getStepLenth.byte)
+        .withCrc();
+  }
+
   static Future<Uint8List> getDeviceTime() async {
     return (Uint8List(16)..[0] = DeviceConst.CMD_GET_TIME).withCrc();
+  }
+
+  // Real Time Step
+  static Future<Uint8List> realTimeStep(bool enable, bool tempEnable) async {
+    return (Uint8List(16)
+          ..[0] = DeviceConst.CMD_ENABLE_ACTIVITY
+          ..[1] = (enable ? 0x01 : 0x00)
+          ..[2] = (tempEnable ? 0x01 : 0x00))
+        .withCrc();
+  }
+
+  static Future<Uint8List> setDeviceMeasurementWithType(
+      AutoTestMode dataType, int second, bool open) async {
+    return (Uint8List(16)
+          ..[0] = DeviceConst.MEASUREMENT_WITH_TYPE
+          ..[1] = dataType.value
+          ..[2] = (open ? 0x01 : 0x00)
+          ..[4] = second.byteAt(0)
+          ..[5] = second.byteAt(1))
+        .withCrc();
   }
 
   // This is set to parse upcoming data, it meant to used inside [BleManager.notify] to parse streamed data
@@ -69,7 +102,7 @@ class BleSDK {
     BluetoothDevice device,
     List<int> data, {
     void Function(BluetoothDevice device, int deviceConstant, List<int> data,
-            Map<String, dynamic> parsedData)?
+            Map<String, dynamic>? parsedData)?
         onParsed,
   }) {
     if (kDebugMode) {
@@ -85,6 +118,8 @@ class BleSDK {
 
     Uint8List bytes = data.bytes;
 
+    debugPrint("[LOG] Device Constant type: ${data[0]}");
+
     switch (data[0]) {
       case DeviceConst.CMD_GET_TIME:
         parsedData = ResolveUtil.getDeviceTime(bytes);
@@ -92,9 +127,44 @@ class BleSDK {
       case DeviceConst.CMD_SET_TIME:
         parsedData = ResolveUtil.setDeviceTimeSuccessful(bytes);
         break;
+      case DeviceConst.CMD_GET_BATTERY_LEVEL:
+        parsedData = ResolveUtil.getDeviceBattery(bytes);
+        break;
+
+      case DeviceConst.CMD_GET_USER_INFO:
+        parsedData = ResolveUtil.getUserInfo(bytes);
+        break;
+
+      /// It is clicking two times the button
+      case DeviceConst.CMD_START_EXERCISE:
+        debugPrint(
+            "[INFO - ${DateTime.now().millisecondsSinceEpoch} ] Start exercise");
+        break;
+
+      case DeviceConst.CMD_LONG_PRESS_ACTION_BUTTON:
+        debugPrint(
+            "[INFO - ${DateTime.now().millisecondsSinceEpoch} ] Long press action button");
+        break;
+      case DeviceConst.MEASUREMENT_WITH_TYPE:
+        debugPrint("[INFO] Measurement with type ${bytes[1]}");
+        switch (bytes[1]) {
+          case 0x01:
+            debugPrint(
+                "[INFO - ${DateTime.now().millisecondsSinceEpoch} ] Heart rate");
+            break;
+          case 0x02:
+            debugPrint(
+                "[INFO - ${DateTime.now().millisecondsSinceEpoch} ] HRV");
+            break;
+          case 0x03:
+            debugPrint(
+                "[INFO - ${DateTime.now().millisecondsSinceEpoch} ] SpO2");
+            break;
+        }
+        break;
       default:
         // Unknown command → do nothing
-        return;
+        break;
     }
 
     debugPrint("Parsed: $parsedData");

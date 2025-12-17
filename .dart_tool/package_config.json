@@ -245,7 +245,7 @@
       "name": "ble_parser",
       "rootUri": "../",
       "packageUri": "lib/",
-      "languageVersion": "2.14"
+      "languageVersion": "2.17"
     }
   ],
   "generator": "pub",

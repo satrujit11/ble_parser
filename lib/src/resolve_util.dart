@@ -110,7 +110,7 @@ class ResolveUtil {
     };
   }
 
-  static Map<String, dynamic> setDeviceTimeSuccessful(List<int> value) {
+  static Map<String, dynamic> setDeviceTimeSuccessful(Uint8List value) {
     return {
       DeviceKey.dataType: BleConst.setDeviceTime,
       DeviceKey.end: true,
@@ -120,29 +120,47 @@ class ResolveUtil {
     };
   }
 
+  static Map<String, dynamic> getDeviceBattery(Uint8List value) {
+    return {
+      DeviceKey.dataType: BleConst.getDeviceBatteryLevel,
+      DeviceKey.end: true,
+      DeviceKey.data: {
+        DeviceKey.batteryLevel: value[1].shiftedBy(0).toString(),
+        DeviceKey.chargingstate: value[2].shiftedBy(0).toString(),
+        DeviceKey.voltageValue:
+            (value[3].shiftedBy(0) + value[4].shiftedBy(1)).toString(),
+      },
+    };
+  }
+
   static Map<String, dynamic> getUserInfo(Uint8List value) {
-    Map<String, dynamic> maps = {};
-    maps[DeviceKey.dataType] = BleConst.getPersonalInfo;
-    maps[DeviceKey.end] = true;
-    Map<String, String> mapData = {};
-    maps[DeviceKey.data] = mapData;
-    List<String> userInfo = List.filled(6, '');
-    for (int i = 0; i < 5; i++) {
-      userInfo[i] = getValue(value[i + 1], 0).toString();
-    }
-    String deviceId = '';
+    // Extract gender, age, height, weight, stride
+    final gender = value[1].shiftedBy(0).toString();
+    final age = value[2].shiftedBy(0).toString();
+    final height = value[3].shiftedBy(0).toString();
+    final weight = value[4].shiftedBy(0).toString();
+    final stride = value[5].shiftedBy(0).toString();
+
+    // Extract device ID (bytes 6 to 11 as ASCII chars)
+    final StringBuffer deviceId = StringBuffer();
     for (int i = 6; i < 12; i++) {
-      if (value[i] == 0) continue;
-      deviceId += String.fromCharCode(getValue(value[i], 0));
+      final byte = value[i];
+      if (byte == 0) continue;
+      deviceId.writeCharCode(byte & 0xFF); // same as Java (char) byte
     }
-    userInfo[5] = deviceId;
-    mapData[DeviceKey.gender] = userInfo[0];
-    mapData[DeviceKey.age] = userInfo[1];
-    mapData[DeviceKey.height] = userInfo[2];
-    mapData[DeviceKey.weight] = userInfo[3];
-    mapData[DeviceKey.stride] = userInfo[4];
-    mapData[DeviceKey.kUserDeviceId] = userInfo[5];
-    return maps;
+
+    return {
+      DeviceKey.dataType: BleConst.getPersonalInfo,
+      DeviceKey.end: true,
+      DeviceKey.data: {
+        DeviceKey.gender: gender,
+        DeviceKey.age: age,
+        DeviceKey.height: height,
+        DeviceKey.weight: weight,
+        DeviceKey.stride: stride,
+        DeviceKey.kUserDeviceId: deviceId.toString(),
+      }
+    };
   }
 
   static Map<String, dynamic> getActivityData(Uint8List value) {
@@ -230,20 +248,20 @@ class ResolveUtil {
     return maps;
   }
 
-  static Map<String, dynamic> getDeviceBattery(Uint8List value) {
-    Map<String, dynamic> maps = {};
-    maps[DeviceKey.dataType] = BleConst.getDeviceBatteryLevel;
-    maps[DeviceKey.end] = true;
-    Map<String, String> mapData = {};
-    maps[DeviceKey.data] = mapData;
-    int battery = getValue(value[1], 0);
-    int chargingstate = getValue(value[2], 0);
-    int voltageValue = getValue(value[3], 0) + getValue(value[4], 1);
-    mapData[DeviceKey.batteryLevel] = battery.toString();
-    mapData[DeviceKey.chargingstate] = chargingstate.toString();
-    mapData[DeviceKey.voltageValue] = voltageValue.toString();
-    return maps;
-  }
+  // static Map<String, dynamic> getDeviceBattery(Uint8List value) {
+  //   Map<String, dynamic> maps = {};
+  //   maps[DeviceKey.dataType] = BleConst.getDeviceBatteryLevel;
+  //   maps[DeviceKey.end] = true;
+  //   Map<String, String> mapData = {};
+  //   maps[DeviceKey.data] = mapData;
+  //   int battery = getValue(value[1], 0);
+  //   int chargingstate = getValue(value[2], 0);
+  //   int voltageValue = getValue(value[3], 0) + getValue(value[4], 1);
+  //   mapData[DeviceKey.batteryLevel] = battery.toString();
+  //   mapData[DeviceKey.chargingstate] = chargingstate.toString();
+  //   mapData[DeviceKey.voltageValue] = voltageValue.toString();
+  //   return maps;
+  // }
 
   static Map<String, dynamic> getTempData(Uint8List value) {
     Map<String, dynamic> maps = {};

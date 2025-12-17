@@ -162,10 +162,15 @@ extension ByteExt on int {
 
   int get asByte => shiftedBy(0);
 
+  int get byte => this & 0xFF;
+
+  int byteAt(int index) => (this >> (index * 8)) & 0xFF;
+
   /// Same as [toHexString] but returns uppercase letters (FF, 0A, etc.)
   String toHexStringUpper() {
     return (this & 0xFF).toRadixString(16).padLeft(2, '0').toUpperCase();
   }
+
 }
 
 extension Uint8ListHex on Uint8List {

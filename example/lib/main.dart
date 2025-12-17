@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:ble_parser/ble_parser.dart';
+import 'package:ble_parser/constants/auto_testmode.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
@@ -16,7 +17,9 @@ void main() async {
       event.bytes,
       onParsed: (device, deviceConst, rawData, parsedData) {
         // Do whatever you want with the parsed result
-        debugPrint("Device Constant type: ${deviceConst.cmdName}");
+        debugPrint("[LOG] Device Name: ${device.name}");
+        debugPrint("[LOG] Device Constant type: ${deviceConst.cmdName}");
+        debugPrint("[LOG] Raw data: $rawData");
         // debugPrint("Parsed time: ${parsedData['deviceTime']}");
         // Do database operations here prefereably
       },
@@ -159,6 +162,19 @@ class _MyHomePageState extends State<MyHomePage> {
     await bleManager.write(device, charUuid, data, withoutResponse: true);
   }
 
+
+  Future<void> startMonitoring(BluetoothDevice device) async {
+    final charUuid = ManufactureConstants.writeCharacteristic;
+    final data = await BleSDK.setDeviceMeasurementWithType(AutoTestMode.autoHeartRate, 0, true);
+    await bleManager.write(device, charUuid, data, withoutResponse: true);
+
+    final data2 = await BleSDK.setDeviceMeasurementWithType(AutoTestMode.autoHrv, 0, true);
+    await bleManager.write(device, charUuid, data2, withoutResponse: true);
+
+    final data3 = await BleSDK.setDeviceMeasurementWithType(AutoTestMode.autoSpo2, 0, true);
+    await bleManager.write(device, charUuid, data3, withoutResponse: true);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -178,8 +194,9 @@ class _MyHomePageState extends State<MyHomePage> {
           if (_isScanning && results.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (results.isEmpty)
+          if (results.isEmpty) {
             return const Center(child: Text("No BLE devices found"));
+          }
 
           return ListView.builder(
             itemCount: results.length,
@@ -229,37 +246,61 @@ class _MyHomePageState extends State<MyHomePage> {
                                 ),
                                 const SizedBox(width: 8),
                                 // SET TIME BUTTON
-                                ElevatedButton.icon(
-                                  onPressed: () async =>
-                                      await writeTime(device),
-                                  icon: const Icon(Icons.access_time, size: 18),
-                                  label: Text("Set Time"),
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                    ),
-                                    visualDensity: VisualDensity.compact,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-
-                                ElevatedButton.icon(
-                                  onPressed: () async => await getTime(device),
-                                  icon: const Icon(Icons.access_time, size: 18),
-                                  label: Text("Get Time"),
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                    ),
-                                    visualDensity: VisualDensity.compact,
-                                  ),
-                                ),
                               ],
                             )
                           : Text("${result.rssi} dBm"),
                       onTap: () async {
+                        if (connectionState == BluetoothConnectionState.connected) {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) => Container(
+                              padding: const EdgeInsets.all(16),
+                              width: double.infinity,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const SizedBox(width: 32),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton.icon(
+                                        onPressed: () async =>
+                                            await writeTime(device),
+                                        icon: const Icon(Icons.access_time, size: 18),
+                                        label: Text("Set Time"),
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                          ),
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton.icon(
+                                        onPressed: () async => await startMonitoring(device),
+                                        icon: const Icon(Icons.access_time, size: 18),
+                                        label: Text("Start Monitoring"),
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                          ),
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }else {
                         await _stopScan();
                         await _connectAndListen(device);
+                        }
                       },
                     ),
                   );

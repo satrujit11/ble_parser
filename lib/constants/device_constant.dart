@@ -2,8 +2,8 @@
 class DeviceConst {
   static const int CMD_SET_TIME = 0x01;
   static const int CMD_GET_TIME = 0x41;
-  static const int CMD_SET_USE_INFO = 0x02;
-  static const int CMD_GET_USERINFO = 0x42;
+  static const int CMD_SET_USER_INFO = 0x02;
+  static const int CMD_GET_USER_INFO = 0x42;
   static const int CMD_SET_DEVICE_ID = 0x05;
   static const int CMD_ENABLE_ACTIVITY = 0x09;
   static const int CMD_GET_BATTERY_LEVEL = 0x13;
@@ -38,11 +38,13 @@ class DeviceConst {
   static const int SET_BASIC_PARAMETERS_OF_EQUIPMENT = 0x03;
   static const int GET_BASIC_PARAMETERS_OF_EQUIPMENT = 0x04;
 
+  static const int CMD_LONG_PRESS_ACTION_BUTTON = 0xFE;
+
   static final Map<int, String> _commandNames = {
     CMD_SET_TIME: "CMD_SET_TIME",
     CMD_GET_TIME: "CMD_GET_TIME",
-    CMD_SET_USE_INFO: "CMD_SET_USE_INFO",
-    CMD_GET_USERINFO: "CMD_GET_USERINFO",
+    CMD_SET_USER_INFO: "CMD_SET_USE_INFO",
+    CMD_GET_USER_INFO: "CMD_GET_USERINFO",
     CMD_SET_DEVICE_ID: "CMD_SET_DEVICE_ID",
     CMD_ENABLE_ACTIVITY: "CMD_ENABLE_ACTIVITY",
     CMD_GET_BATTERY_LEVEL: "CMD_GET_BATTERY_LEVEL",
@@ -73,6 +75,7 @@ class DeviceConst {
     TEMPERATURE_3NTC: "TEMPERATURE_3NTC",
     SET_BASIC_PARAMETERS_OF_EQUIPMENT: "SET_BASIC_PARAMETERS_OF_EQUIPMENT",
     GET_BASIC_PARAMETERS_OF_EQUIPMENT: "GET_BASIC_PARAMETERS_OF_EQUIPMENT",
+    CMD_LONG_PRESS_ACTION_BUTTON: "CMD_LONG_PRESS_ACTION_BUTTON",
   };
 
   static String getCommandName(int value) {

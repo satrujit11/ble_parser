@@ -160,13 +160,6 @@
       ]
     },
     {
-      "name": "flutter_blue_plus_platform_interface",
-      "version": "8.0.1",
-      "dependencies": [
-        "flutter"
-      ]
-    },
-    {
       "name": "flutter_blue_plus_linux",
       "version": "8.0.1",
       "dependencies": [
@@ -190,6 +183,13 @@
       "dependencies": [
         "flutter",
         "flutter_blue_plus_platform_interface"
+      ]
+    },
+    {
+      "name": "flutter_blue_plus_platform_interface",
+      "version": "8.0.1",
+      "dependencies": [
+        "flutter"
       ]
     },
     {
@@ -267,6 +267,11 @@
       ]
     },
     {
+      "name": "web",
+      "version": "1.1.1",
+      "dependencies": []
+    },
+    {
       "name": "flutter_web_plugins",
       "version": "0.0.0",
       "dependencies": [
@@ -279,8 +284,8 @@
       "dependencies": []
     },
     {
-      "name": "web",
-      "version": "1.1.1",
+      "name": "rxdart",
+      "version": "0.28.0",
       "dependencies": []
     },
     {
@@ -321,11 +326,6 @@
         "collection",
         "meta"
       ]
-    },
-    {
-      "name": "rxdart",
-      "version": "0.28.0",
-      "dependencies": []
     },
     {
       "name": "args",

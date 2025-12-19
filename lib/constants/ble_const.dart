@@ -125,4 +125,6 @@ class BleConst {
   static const String telMode = "TelMode";
   static const String ecgResult = "ECGResult";
   static const String enterecG = "ENTERECG";
+  static const String doubleClick = "DoubleClick";
+  static const String longPress = "LongPress";
 }

@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:ble_parser/ble_parser.dart';
 import 'package:ble_parser/constants/auto_testmode.dart';
+import 'package:ble_parser/models/automatic_hr_monitoring.dart';
+import 'package:ble_parser/models/ble_command_state.dart';
+import 'package:ble_parser/models/personal_info.model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
@@ -162,17 +165,172 @@ class _MyHomePageState extends State<MyHomePage> {
     await bleManager.write(device, charUuid, data, withoutResponse: true);
   }
 
-
   Future<void> startMonitoring(BluetoothDevice device) async {
     final charUuid = ManufactureConstants.writeCharacteristic;
-    final data = await BleSDK.setDeviceMeasurementWithType(AutoTestMode.autoHeartRate, 0, true);
+
+    final activityData = await BleSDK.enableActivity(true, true);
+    await bleManager.write(
+      device,
+      charUuid,
+      activityData,
+      withoutResponse: true,
+    );
+
+    final data = await BleSDK.setDeviceMeasurementWithType(
+      AutoTestMode.autoHeartRate,
+      30,
+      true,
+    );
     await bleManager.write(device, charUuid, data, withoutResponse: true);
 
-    final data2 = await BleSDK.setDeviceMeasurementWithType(AutoTestMode.autoHrv, 0, true);
+    final data2 = await BleSDK.setDeviceMeasurementWithType(
+      AutoTestMode.autoHrv,
+      30,
+      true,
+    );
     await bleManager.write(device, charUuid, data2, withoutResponse: true);
 
-    final data3 = await BleSDK.setDeviceMeasurementWithType(AutoTestMode.autoSpo2, 0, true);
+    final data3 = await BleSDK.setDeviceMeasurementWithType(
+      AutoTestMode.autoSpo2,
+      30,
+      true,
+    );
     await bleManager.write(device, charUuid, data3, withoutResponse: true);
+  }
+
+  Future<void> setUserInfo(BluetoothDevice device) async {
+    final charUuid = ManufactureConstants.writeCharacteristic;
+    final data = await BleSDK.setPersonalInfo(
+      PersonalInfo(sex: 1, age: 30, height: 178, weight: 90),
+    );
+    await bleManager.write(device, charUuid, data, withoutResponse: true);
+  }
+
+  Future<void> getUserInfo(BluetoothDevice device) async {
+    final charUuid = ManufactureConstants.writeCharacteristic;
+    final data = await BleSDK.getPersonalInfo();
+    await bleManager.write(device, charUuid, data, withoutResponse: true);
+  }
+
+  Future<void> getBasicParameters(BluetoothDevice device) async {
+    final charUuid = ManufactureConstants.writeCharacteristic;
+    final data = await BleSDK.getBasicParamtersOfEquipment();
+    await bleManager.write(device, charUuid, data, withoutResponse: true);
+  }
+
+  Future<void> getAutoMeasureConfig(BluetoothDevice device) async {
+    // final charUuid = ManufactureConstants.writeCharacteristic;
+
+    // final data1 = await BleSDK.getAutommaticHRMonitoring(AutoMode.AutoHeartRate);
+    // await bleManager.write(device, charUuid, data1, withoutResponse: true);
+
+    // final data2 = await BleSDK.getAutommaticHRMonitoring(AutoMode.AutoHrv);
+    // await bleManager.write(device, charUuid, data2, withoutResponse: true);
+    //
+    //
+    // final data3 = await BleSDK.getAutommaticHRMonitoring(AutoMode.AutoSpo2);
+    // await bleManager.write(device, charUuid, data3, withoutResponse: true);
+    //
+    //
+    // final data4 = await BleSDK.getAutommaticHRMonitoring(AutoMode.AutoTemp);
+    // await bleManager.write(device, charUuid, data4, withoutResponse: true);
+  }
+
+  Future<void> setAutoMeasureConfig(BluetoothDevice device) async {
+    final charUuid = ManufactureConstants.writeCharacteristic;
+
+    final data1 = await BleSDK.setAutommaticHRMonitoring(
+      AutoHRMonitoring(
+        open: 2,
+        startHour: 00,
+        startMinute: 00,
+        endHour: 23,
+        endMinute: 59,
+        week: 127,
+        intervalMinutes: 1,
+      ),
+      AutoMode.AutoHeartRate,
+    );
+    await bleManager.write(device, charUuid, data1, withoutResponse: true);
+
+    final data2 = await BleSDK.setAutommaticHRMonitoring(
+      AutoHRMonitoring(
+        open: 2,
+        startHour: 00,
+        startMinute: 00,
+        endHour: 23,
+        endMinute: 59,
+        week: 127,
+        intervalMinutes: 1,
+      ),
+      AutoMode.AutoSpo2,
+    );
+    await bleManager.write(device, charUuid, data2, withoutResponse: true);
+
+    final data3 = await BleSDK.setAutommaticHRMonitoring(
+      AutoHRMonitoring(
+        open: 2,
+        startHour: 00,
+        startMinute: 00,
+        endHour: 23,
+        endMinute: 59,
+        week: 127,
+        intervalMinutes: 1,
+      ),
+      AutoMode.AutoHrv,
+    );
+    await bleManager.write(device, charUuid, data3, withoutResponse: true);
+
+    final data4 = await BleSDK.setAutommaticHRMonitoring(
+      AutoHRMonitoring(
+        open: 2,
+        startHour: 00,
+        startMinute: 00,
+        endHour: 23,
+        endMinute: 59,
+        week: 127,
+        intervalMinutes: 1,
+      ),
+      AutoMode.AutoTemp,
+    );
+    await bleManager.write(device, charUuid, data4, withoutResponse: true);
+  }
+
+  Future<void> getAllActivityData(BluetoothDevice device) async {
+    final charUuid = ManufactureConstants.writeCharacteristic;
+    final data = await BleSDK.getTotalActivityDataWithMode(
+      DataReadingMode.startReading,
+      null,
+    );
+    await bleManager.write(device, charUuid, data, withoutResponse: true);
+  }
+
+  Future<void> deleteAllActivityData(BluetoothDevice device) async {
+    final charUuid = ManufactureConstants.writeCharacteristic;
+    final data = await BleSDK.getTotalActivityDataWithMode(
+      DataReadingMode.deleteData,
+      null
+    );
+    await bleManager.write(device, charUuid, data, withoutResponse: true);
+  }
+
+
+  Future<void> getAllSleepData(BluetoothDevice device) async {
+    final charUuid = ManufactureConstants.writeCharacteristic;
+    final data = await BleSDK.getDetailSleepDataWithMode(
+      DataReadingMode.startReading,
+      null,
+    );
+    await bleManager.write(device, charUuid, data, withoutResponse: true);
+  }
+
+  Future<void> deleteAllSleepData(BluetoothDevice device) async {
+    final charUuid = ManufactureConstants.writeCharacteristic;
+    final data = await BleSDK.getDetailSleepDataWithMode(
+      DataReadingMode.deleteData,
+      null
+    );
+    await bleManager.write(device, charUuid, data, withoutResponse: true);
   }
 
   @override
@@ -250,7 +408,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             )
                           : Text("${result.rssi} dBm"),
                       onTap: () async {
-                        if (connectionState == BluetoothConnectionState.connected) {
+                        if (connectionState ==
+                            BluetoothConnectionState.connected) {
                           showModalBottomSheet(
                             context: context,
                             builder: (context) => Container(
@@ -266,7 +425,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                       child: ElevatedButton.icon(
                                         onPressed: () async =>
                                             await writeTime(device),
-                                        icon: const Icon(Icons.access_time, size: 18),
+                                        icon: const Icon(
+                                          Icons.access_time,
+                                          size: 18,
+                                        ),
                                         label: Text("Set Time"),
                                         style: ElevatedButton.styleFrom(
                                           padding: const EdgeInsets.symmetric(
@@ -277,13 +439,190 @@ class _MyHomePageState extends State<MyHomePage> {
                                       ),
                                     ),
                                     const SizedBox(width: 12),
-                                
+
                                     SizedBox(
                                       width: double.infinity,
                                       child: ElevatedButton.icon(
-                                        onPressed: () async => await startMonitoring(device),
-                                        icon: const Icon(Icons.access_time, size: 18),
+                                        onPressed: () async =>
+                                            await startMonitoring(device),
+                                        icon: const Icon(
+                                          Icons.access_time,
+                                          size: 18,
+                                        ),
                                         label: Text("Start Monitoring"),
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                          ),
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                      ),
+                                    ),
+
+                                    Container(
+                                      margin: const EdgeInsets.only(top: 12),
+                                      width: double.infinity,
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: ElevatedButton.icon(
+                                              onPressed: () async =>
+                                                  await setUserInfo(device),
+                                              label: Text("Set User Info"),
+                                              style: ElevatedButton.styleFrom(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                    ),
+                                                visualDensity:
+                                                    VisualDensity.compact,
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(width: 12),
+                                          Expanded(
+                                            child: ElevatedButton.icon(
+                                              onPressed: () async =>
+                                                  await getUserInfo(device),
+                                              label: Text("Get User Info"),
+                                              style: ElevatedButton.styleFrom(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                    ),
+                                                visualDensity:
+                                                    VisualDensity.compact,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton.icon(
+                                        onPressed: () async =>
+                                            await getBasicParameters(device),
+                                        label: Text("Get Equipment Paramaters"),
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                          ),
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                      ),
+                                    ),
+
+                                    Container(
+                                      margin: const EdgeInsets.only(top: 12),
+                                      width: double.infinity,
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: ElevatedButton.icon(
+                                              onPressed: () async =>
+                                                  await setAutoMeasureConfig(
+                                                    device,
+                                                  ),
+                                              label: Text(
+                                                "Set Auto Measure Config",
+                                              ),
+                                              style: ElevatedButton.styleFrom(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                    ),
+                                                visualDensity:
+                                                    VisualDensity.compact,
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(width: 12),
+                                          Expanded(
+                                            child: ElevatedButton.icon(
+                                              onPressed: () async =>
+                                                  await getAutoMeasureConfig(
+                                                    device,
+                                                  ),
+                                              label: Text(
+                                                "Get Auto Measure Config",
+                                              ),
+                                              style: ElevatedButton.styleFrom(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                    ),
+                                                visualDensity:
+                                                    VisualDensity.compact,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton.icon(
+                                        onPressed: () async =>
+                                            await getAllActivityData(device),
+                                        label: Text("Get All Activity Data"),
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                          ),
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 12,
+                                    ),
+
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton.icon(
+                                        onPressed: () async =>
+                                            await deleteAllActivityData(device),
+                                        label: Text("Delete All Activity Data"),
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                          ),
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                      ),
+                                    ),
+
+                                    SizedBox(
+                                      height: 24,
+                                    ),
+
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton.icon(
+                                        onPressed: () async =>
+                                            await getAllSleepData(device),
+                                        label: Text("Get All Sleep Data"),
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                          ),
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 12,
+                                    ),
+
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton.icon(
+                                        onPressed: () async =>
+                                            await deleteAllSleepData(device),
+                                        label: Text("Delete All Sleep Data"),
                                         style: ElevatedButton.styleFrom(
                                           padding: const EdgeInsets.symmetric(
                                             horizontal: 12,
@@ -297,9 +636,9 @@ class _MyHomePageState extends State<MyHomePage> {
                               ),
                             ),
                           );
-                        }else {
-                        await _stopScan();
-                        await _connectAndListen(device);
+                        } else {
+                          await _stopScan();
+                          await _connectAndListen(device);
                         }
                       },
                     ),

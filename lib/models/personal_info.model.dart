@@ -1,3 +1,14 @@
+/// Personal info model
+///
+/// ```dart
+/// final info = PersonalInfo(
+///   sex: 1, // 1 = Male, 0 = Female
+///   age: 30, // in years
+///   height: 175, // in cm
+///   weight: 70, // in kg
+/// );
+/// ```
+
 class PersonalInfo {
   /// Sex: 1 = Male, 0 = Female
   final int sex;

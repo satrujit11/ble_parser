@@ -171,6 +171,24 @@ extension ByteExt on int {
     return (this & 0xFF).toRadixString(16).padLeft(2, '0').toUpperCase();
   }
 
+  int get bleTimeValue {
+    final parsed = int.parse(toString(), radix: 16);
+    return parsed & 0xFF;
+  }
+}
+
+extension StepPacketSize on Uint8List {
+  int get stepCount {
+    if (length == 2) return 27;
+
+    if (length % 26 == 0 || (length - 2) % 26 == 0) {
+      return 26;
+    }
+    if (length % 27 == 0 || (length - 2) % 27 == 0) {
+      return 27;
+    }
+    return 27;
+  }
 }
 
 extension Uint8ListHex on Uint8List {

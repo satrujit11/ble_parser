@@ -1,5 +1,8 @@
+import 'package:ble_parser/ble_parser.dart';
 import 'package:ble_parser/constants/auto_testmode.dart';
 import 'package:ble_parser/constants/device_constant.dart';
+import 'package:ble_parser/models/automatic_hr_monitoring.dart';
+import 'package:ble_parser/models/ble_command_state.dart';
 import 'package:ble_parser/models/personal_info.model.dart';
 import 'package:ble_parser/utils/extensions.dart';
 import 'package:ble_parser/src/resolve_util.dart';
@@ -73,21 +76,20 @@ class BleSDK {
         .withCrc();
   }
 
+  static Future<Uint8List> getPersonalInfo() async {
+    return (Uint8List(16)..[0] = DeviceConst.CMD_GET_USER_INFO).withCrc();
+  }
+
   static Future<Uint8List> getDeviceTime() async {
     return (Uint8List(16)..[0] = DeviceConst.CMD_GET_TIME).withCrc();
   }
 
-  // Real Time Step
-  static Future<Uint8List> realTimeStep(bool enable, bool tempEnable) async {
-    return (Uint8List(16)
-          ..[0] = DeviceConst.CMD_ENABLE_ACTIVITY
-          ..[1] = (enable ? 0x01 : 0x00)
-          ..[2] = (tempEnable ? 0x01 : 0x00))
-        .withCrc();
-  }
-
   static Future<Uint8List> setDeviceMeasurementWithType(
       AutoTestMode dataType, int second, bool open) async {
+    assert(
+      !open || second >= 30,
+      'Measurement interval must be greater than or equal to 30 seconds when enabled',
+    );
     return (Uint8List(16)
           ..[0] = DeviceConst.MEASUREMENT_WITH_TYPE
           ..[1] = dataType.value
@@ -95,6 +97,83 @@ class BleSDK {
           ..[4] = second.byteAt(0)
           ..[5] = second.byteAt(1))
         .withCrc();
+  }
+
+  static Future<Uint8List> getBasicParamtersOfEquipment() async {
+    return (Uint8List(16)..[0] = DeviceConst.GET_BASIC_PARAMETERS_OF_EQUIPMENT)
+        .withCrc();
+  }
+
+  /// this is alternative to RealTimeStep in previous sdk
+  static Future<Uint8List> enableActivity(bool enable, bool tempEnable) async {
+    return (Uint8List(16)
+          ..[0] = DeviceConst.CMD_ENABLE_ACTIVITY
+          ..[1] = (enable ? 0x01 : 0x00)
+          ..[2] = (tempEnable ? 0x01 : 0x00))
+        .withCrc();
+  }
+
+  static Future<Uint8List> setAutommaticHRMonitoring(
+      AutoHRMonitoring autoHeart, AutoMode? type) async {
+    return (Uint8List(16)
+          ..[0] = DeviceConst.CMD_SET_AUTO
+          ..[1] = autoHeart.open
+          ..[2] = autoHeart.startHour.hexTimeValue
+          ..[3] = autoHeart.startMinute.hexTimeValue
+          ..[4] = autoHeart.endHour.hexTimeValue
+          ..[5] = autoHeart.endMinute.hexTimeValue
+          ..[6] = autoHeart.week
+          ..[7] = autoHeart.intervalMinutes.byteAt(0)
+          ..[8] = autoHeart.intervalMinutes.byteAt(1)
+          ..[9] = type?.value ?? 0x01)
+        .withCrc();
+  }
+
+  static Future<Uint8List> getAutommaticHRMonitoring(AutoMode? type) async {
+    return (Uint8List(16)
+          ..[0] = DeviceConst.CMD_GET_AUTO
+          ..[1] = type?.value ?? 0x01)
+        .withCrc();
+  }
+
+  static Future<Uint8List> getTotalActivityDataWithMode(
+      DataReadingMode mode, DateTime? dateOfLastData) async {
+    BleCommandState.deleteTotalActivityDataWithMode =
+        mode == DataReadingMode.deleteData;
+    final value = Uint8List(16)
+      ..[0] = DeviceConst.CMD_GET_TOTAL_DATA
+      ..[1] = mode.value;
+
+    // Insert date only if provided (matches Java behavior)
+    if (dateOfLastData != null) {
+      value[4] = dateOfLastData.year.bleTimeValue;
+      value[5] = dateOfLastData.month.bleTimeValue;
+      value[6] = dateOfLastData.day.bleTimeValue;
+      value[7] = dateOfLastData.hour.bleTimeValue;
+      value[8] = dateOfLastData.minute.bleTimeValue;
+      value[9] = dateOfLastData.second.bleTimeValue;
+    }
+    return value.withCrc();
+  }
+
+  static Future<Uint8List> getDetailSleepDataWithMode(
+      DataReadingMode mode, DateTime? dateOfLastData) async {
+    BleCommandState.deleteGetDetailsSleepData =
+        mode == DataReadingMode.deleteData;
+    final value = Uint8List(16)
+      ..[0] = DeviceConst.CMD_GET_SLEEP_DATA
+      ..[1] = mode.value;
+
+    // Insert date only if provided (matches Java behavior)
+    if (dateOfLastData != null) {
+      value[4] = dateOfLastData.year.bleTimeValue;
+      value[5] = dateOfLastData.month.bleTimeValue;
+      value[6] = dateOfLastData.day.bleTimeValue;
+      value[7] = dateOfLastData.hour.bleTimeValue;
+      value[8] = dateOfLastData.minute.bleTimeValue;
+      value[9] = dateOfLastData.second.bleTimeValue;
+    }
+    return value.withCrc();
   }
 
   // This is set to parse upcoming data, it meant to used inside [BleManager.notify] to parse streamed data
@@ -135,16 +214,47 @@ class BleSDK {
         parsedData = ResolveUtil.getUserInfo(bytes);
         break;
 
+      case DeviceConst.GET_BASIC_PARAMETERS_OF_EQUIPMENT:
+        parsedData = ResolveUtil.getBasicParametersOfEquipment(bytes);
+        break;
+
+      case DeviceConst.CMD_ENABLE_ACTIVITY:
+        parsedData = ResolveUtil.getActivityData(bytes);
+        break;
+
+      case DeviceConst.CMD_GET_AUTO:
+        parsedData = ResolveUtil.getAutoHeart(bytes);
+        break;
+
+      case DeviceConst.CMD_GET_TOTAL_DATA:
+        if (BleCommandState.deleteTotalActivityDataWithMode) {
+          parsedData =
+              ResolveUtil.deleteData(BleConst.deleteGetTotalActivityData);
+          BleCommandState.deleteTotalActivityDataWithMode = false;
+        } else {
+          parsedData = ResolveUtil.getTotalStepData(bytes);
+        }
+        break;
+
+      case DeviceConst.CMD_GET_SLEEP_DATA:
+        if (BleCommandState.deleteTotalActivityDataWithMode) {
+          parsedData =
+              ResolveUtil.deleteData(BleConst.deleteGetDetailSleepData);
+          BleCommandState.deleteGetDetailsSleepData = false;
+        } else {
+          parsedData = ResolveUtil.getSleepData(bytes);
+        }
+        break;
+
       /// It is clicking two times the button
       case DeviceConst.CMD_START_EXERCISE:
-        debugPrint(
-            "[INFO - ${DateTime.now().millisecondsSinceEpoch} ] Start exercise");
+        parsedData = ResolveUtil.doubleClickAction(bytes);
         break;
 
       case DeviceConst.CMD_LONG_PRESS_ACTION_BUTTON:
-        debugPrint(
-            "[INFO - ${DateTime.now().millisecondsSinceEpoch} ] Long press action button");
+        parsedData = ResolveUtil.longPressAction(bytes);
         break;
+
       case DeviceConst.MEASUREMENT_WITH_TYPE:
         debugPrint("[INFO] Measurement with type ${bytes[1]}");
         switch (bytes[1]) {

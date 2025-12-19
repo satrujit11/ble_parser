@@ -29,7 +29,7 @@ class DeviceKey {
   static const String exerciseMinutes = "ExerciseMinutes";
   static const String heartRate = "HeartRate";
   static const String activeMinutes = "ActiveMinutes";
-  static const String bloodOxygen = "Blood_oxygen";
+  static const String bloodOxygen = "BloodOxygen";
   static const String arrayX = "arrayX";
   static const String arrayY = "arrayY";
   static const String arrayZ = "arrayZ";
@@ -37,7 +37,7 @@ class DeviceKey {
   static const String stepGoal = "StepGoal";
   static const String batteryLevel = "BatteryLevel";
   static const String chargingstate = "Chargingstate";
-  static const String voltageValue = "Voltage_value";
+  static const String voltageValue = "VoltageValue";
   static const String macAddress = "MacAddress";
   static const String deviceVersion = "DeviceVersion";
   static const String deviceName = "DeviceName";
@@ -117,6 +117,8 @@ class DeviceKey {
   static const String lowPressure = "LowPressure";
   static const String ecgResult = "ECGResult";
   static const String enterEcg = "ENTERECG";
+  static const String exerciseToggle = "ExerciseToggle";
+  static const String longPress = "LongPress";
 }
 
 extension DeviceDataMapExt on Map<String, dynamic>? {

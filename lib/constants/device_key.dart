@@ -31,6 +31,7 @@ class DeviceKey {
   static const String activeMinutes = "ActiveMinutes";
   static const String bloodOxygen = "BloodOxygen";
   static const String arrayX = "arrayX";
+  static const String type = "type";
   static const String arrayY = "arrayY";
   static const String arrayZ = "arrayZ";
   static const String dataTypePpgRawData = "arrayPpgRawData";

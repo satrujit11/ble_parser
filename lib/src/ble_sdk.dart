@@ -266,14 +266,17 @@ class BleSDK {
           case 0x01:
             debugPrint(
                 "[INFO - ${DateTime.now().millisecondsSinceEpoch} ] Heart rate");
+            parsedData = ResolveUtil.getMeasurementCallback(bytes, BleConst.measurementHrvCallback);
             break;
           case 0x02:
             debugPrint(
                 "[INFO - ${DateTime.now().millisecondsSinceEpoch} ] HRV");
+            parsedData = ResolveUtil.getMeasurementCallback(bytes, BleConst.measurementHeartCallback);
             break;
           case 0x03:
             debugPrint(
                 "[INFO - ${DateTime.now().millisecondsSinceEpoch} ] SpO2");
+            parsedData = ResolveUtil.getMeasurementCallback(bytes, BleConst.measurementOxygenCallback);
             break;
         }
         break;

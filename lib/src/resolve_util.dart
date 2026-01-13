@@ -367,4 +367,20 @@ class ResolveUtil {
     }
     return result;
   }
+
+  static Map<String, dynamic> getMeasurementCallback(Uint8List value, String dataType) {
+    return {
+      DeviceKey.dataType: dataType,
+      DeviceKey.end: true,
+      DeviceKey.data: {
+         DeviceKey.type: value[1].shiftedBy(0).toString(),
+         DeviceKey.heartRate: value[2].shiftedBy(0).toString(),
+         DeviceKey.bloodOxygen: value[3].shiftedBy(0).toString(),
+         DeviceKey.hrv: value[4].shiftedBy(0).toString(),
+         DeviceKey.stress: value[5].shiftedBy(0).toString(),
+         DeviceKey.highPressure: value[6].shiftedBy(0).toString(),
+         DeviceKey.lowPressure: value[7].shiftedBy(0).toString(),
+      }
+    };
+  }
 }

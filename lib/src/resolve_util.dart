@@ -6,7 +6,7 @@ import 'package:ble_parser/models/week.dart';
 import 'package:ble_parser/utils/extensions.dart';
 
 class ResolveUtil {
-  static Map<String, Object> MCUReset() {
+  static Map<String, Object> mcuReset() {
     return {
       DeviceKey.dataType: BleConst.cmdMcuReset,
       DeviceKey.data: <String, Object>{},

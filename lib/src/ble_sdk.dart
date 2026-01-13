@@ -76,6 +76,11 @@ class BleSDK {
         .withCrc();
   }
 
+  static Future<Uint8List> mcuReset() async {
+    return (Uint8List(16)..[0] = DeviceConst.CMD_MCU_RESET).withCrc();
+  }
+
+
   static Future<Uint8List> getPersonalInfo() async {
     return (Uint8List(16)..[0] = DeviceConst.CMD_GET_USER_INFO).withCrc();
   }
@@ -258,6 +263,10 @@ class BleSDK {
 
       case DeviceConst.CMD_LONG_PRESS_ACTION_BUTTON:
         parsedData = ResolveUtil.longPressAction(bytes);
+        break;
+
+      case DeviceConst.CMD_MCU_RESET:
+        parsedData = ResolveUtil.mcuReset();
         break;
 
       case DeviceConst.MEASUREMENT_WITH_TYPE:

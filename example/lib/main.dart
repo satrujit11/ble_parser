@@ -219,21 +219,21 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> getAutoMeasureConfig(BluetoothDevice device) async {
-    // final charUuid = ManufactureConstants.writeCharacteristic;
+    final charUuid = ManufactureConstants.writeCharacteristic;
 
-    // final data1 = await BleSDK.getAutommaticHRMonitoring(AutoMode.AutoHeartRate);
-    // await bleManager.write(device, charUuid, data1, withoutResponse: true);
+    final data1 = await BleSDK.getAutommaticHRMonitoring(AutoMode.AutoHeartRate);
+    await bleManager.write(device, charUuid, data1, withoutResponse: true);
 
-    // final data2 = await BleSDK.getAutommaticHRMonitoring(AutoMode.AutoHrv);
-    // await bleManager.write(device, charUuid, data2, withoutResponse: true);
+    final data2 = await BleSDK.getAutommaticHRMonitoring(AutoMode.AutoHrv);
+    await bleManager.write(device, charUuid, data2, withoutResponse: true);
     //
     //
-    // final data3 = await BleSDK.getAutommaticHRMonitoring(AutoMode.AutoSpo2);
-    // await bleManager.write(device, charUuid, data3, withoutResponse: true);
+    final data3 = await BleSDK.getAutommaticHRMonitoring(AutoMode.AutoSpo2);
+    await bleManager.write(device, charUuid, data3, withoutResponse: true);
     //
     //
-    // final data4 = await BleSDK.getAutommaticHRMonitoring(AutoMode.AutoTemp);
-    // await bleManager.write(device, charUuid, data4, withoutResponse: true);
+    final data4 = await BleSDK.getAutommaticHRMonitoring(AutoMode.AutoTemp);
+    await bleManager.write(device, charUuid, data4, withoutResponse: true);
   }
 
   Future<void> setAutoMeasureConfig(BluetoothDevice device) async {
@@ -331,6 +331,16 @@ class _MyHomePageState extends State<MyHomePage> {
       null
     );
     await bleManager.write(device, charUuid, data, withoutResponse: true);
+  }
+
+  Future<void> getBatteryLevel(BluetoothDevice device) async {
+    final data = await BleSDK.getDeviceBattery();
+    await bleManager.write(
+      device,
+      ManufactureConstants.writeCharacteristic,
+      data,
+      withoutResponse: true
+    );
   }
 
   @override

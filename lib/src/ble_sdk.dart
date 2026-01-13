@@ -84,6 +84,11 @@ class BleSDK {
     return (Uint8List(16)..[0] = DeviceConst.CMD_GET_TIME).withCrc();
   }
 
+  static Future<Uint8List> getDeviceBattery() async {
+    return (Uint8List(16)..[0] = DeviceConst.CMD_GET_BATTERY_LEVEL).withCrc();
+  }
+
+
   static Future<Uint8List> setDeviceMeasurementWithType(
       AutoTestMode dataType, int second, bool open) async {
     assert(

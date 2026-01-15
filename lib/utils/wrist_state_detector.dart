@@ -5,7 +5,7 @@ class WristStateDetector {
   final int windowSizeSeconds;
   final List<ActivityFrame> _buffer = [];
 
-  bool? _stableState;
+  bool _stableState = true;
   int _confidenceCount = 0;
 
   int? lastSteps;
@@ -44,7 +44,7 @@ class WristStateDetector {
   bool getStableWristState() {
     final current = _calculateOnWrist();
 
-    if (_stableState == null || _stableState != current) {
+    if (_stableState != current) {
       _confidenceCount++;
     } else {
       _confidenceCount = 0;
@@ -56,11 +56,11 @@ class WristStateDetector {
       _confidenceCount = 0;
     }
 
-    return _stableState ?? current;
+    return _stableState;
   }
 
   bool _calculateOnWrist() {
-    if (_buffer.length < 10) return false;
+    if (_buffer.length < 10) return true;
 
     int validHr = 0;
     int motion = 0;

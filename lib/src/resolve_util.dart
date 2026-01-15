@@ -2,8 +2,12 @@ import 'dart:typed_data';
 import 'package:ble_parser/constants/ble_const.dart';
 import 'package:ble_parser/constants/device_constant.dart';
 import 'package:ble_parser/constants/device_key.dart';
+import 'package:ble_parser/models/activity_frame.dart';
 import 'package:ble_parser/models/week.dart';
 import 'package:ble_parser/utils/extensions.dart';
+import 'package:ble_parser/utils/wrist_state_detector.dart';
+
+final detector = WristStateDetector();
 
 class ResolveUtil {
   static Map<String, Object> mcuReset() {
@@ -142,6 +146,35 @@ class ResolveUtil {
     /// Blood oxygen (byte 24)
     spo2 = value[24].shiftedBy(0);
 
+    int lastSteps = detector.lastSteps ?? step;
+
+    final parsed = {
+      DeviceKey.step: step.toString(),
+      DeviceKey.calories: (calories / 100).toStringAsFixed(1),
+      DeviceKey.distance: (distance / 100).toStringAsFixed(2),
+      DeviceKey.exerciseMinutes: (time ~/ 60).toString(),
+      DeviceKey.heartRate: heartRate.toString(),
+      DeviceKey.activeMinutes: exerciseTime.toString(),
+      DeviceKey.tempData: temperature,
+      DeviceKey.bloodOxygen: spo2.toString(),
+    };
+
+    detector.addFrame(
+      ActivityFrame(
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+        heartRate: int.parse(parsed[DeviceKey.heartRate]!),
+        temperature: double.parse(parsed[DeviceKey.tempData]!),
+        spo2: int.parse(parsed[DeviceKey.bloodOxygen]!),
+        steps: int.parse(parsed[DeviceKey.step]!),
+        stepDelta: int.parse(parsed[DeviceKey.step]!) - lastSteps,
+      ),
+    );
+
+    
+    detector.lastSteps = step;
+
+    final onWrist = detector.getStableWristState();
+
     return {
       DeviceKey.dataType: BleConst.realTimeStep,
       DeviceKey.end: true,
@@ -154,6 +187,7 @@ class ResolveUtil {
         DeviceKey.activeMinutes: exerciseTime.toString(),
         DeviceKey.tempData: temperature,
         DeviceKey.bloodOxygen: spo2.toString(),
+        DeviceKey.onWrist: onWrist
       }
     };
   }
@@ -368,18 +402,19 @@ class ResolveUtil {
     return result;
   }
 
-  static Map<String, dynamic> getMeasurementCallback(Uint8List value, String dataType) {
+  static Map<String, dynamic> getMeasurementCallback(
+      Uint8List value, String dataType) {
     return {
       DeviceKey.dataType: dataType,
       DeviceKey.end: true,
       DeviceKey.data: {
-         DeviceKey.type: value[1].shiftedBy(0).toString(),
-         DeviceKey.heartRate: value[2].shiftedBy(0).toString(),
-         DeviceKey.bloodOxygen: value[3].shiftedBy(0).toString(),
-         DeviceKey.hrv: value[4].shiftedBy(0).toString(),
-         DeviceKey.stress: value[5].shiftedBy(0).toString(),
-         DeviceKey.highPressure: value[6].shiftedBy(0).toString(),
-         DeviceKey.lowPressure: value[7].shiftedBy(0).toString(),
+        DeviceKey.type: value[1].shiftedBy(0).toString(),
+        DeviceKey.heartRate: value[2].shiftedBy(0).toString(),
+        DeviceKey.bloodOxygen: value[3].shiftedBy(0).toString(),
+        DeviceKey.hrv: value[4].shiftedBy(0).toString(),
+        DeviceKey.stress: value[5].shiftedBy(0).toString(),
+        DeviceKey.highPressure: value[6].shiftedBy(0).toString(),
+        DeviceKey.lowPressure: value[7].shiftedBy(0).toString(),
       }
     };
   }

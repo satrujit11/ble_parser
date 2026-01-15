@@ -19,10 +19,14 @@ void main() async {
       event.device,
       event.bytes,
       onParsed: (device, deviceConst, rawData, parsedData) {
+        // switch parsedData["DataType"] {
+        //   case BleConst.getPersonalInfo : _saveTime(parsedData["Data"])
+        //   case BleConst.getDeviceBatteryLevel: _saveBattery(parsedData["Data"])
+        // }
         // Do whatever you want with the parsed result
-        debugPrint("[LOG] Device Name: ${device.name}");
-        debugPrint("[LOG] Device Constant type: ${deviceConst.cmdName}");
-        debugPrint("[LOG] Raw data: $rawData");
+        // debugPrint("[LOG] Device Name: ${device.name}");
+        // debugPrint("[LOG] Device Constant type: ${deviceConst.cmdName}");
+        // debugPrint("[LOG] Raw data: $rawData");
         // debugPrint("Parsed time: ${parsedData['deviceTime']}");
         // Do database operations here prefereably
       },
@@ -31,6 +35,12 @@ void main() async {
 
   runApp(const MyApp());
 }
+
+// _saveBattery (data){
+//   latestdata == data
+//   updatedAt
+//
+// }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -221,7 +231,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> getAutoMeasureConfig(BluetoothDevice device) async {
     final charUuid = ManufactureConstants.writeCharacteristic;
 
-    final data1 = await BleSDK.getAutommaticHRMonitoring(AutoMode.AutoHeartRate);
+    final data1 = await BleSDK.getAutommaticHRMonitoring(
+      AutoMode.AutoHeartRate,
+    );
     await bleManager.write(device, charUuid, data1, withoutResponse: true);
 
     final data2 = await BleSDK.getAutommaticHRMonitoring(AutoMode.AutoHrv);
@@ -309,11 +321,10 @@ class _MyHomePageState extends State<MyHomePage> {
     final charUuid = ManufactureConstants.writeCharacteristic;
     final data = await BleSDK.getTotalActivityDataWithMode(
       DataReadingMode.deleteData,
-      null
+      null,
     );
     await bleManager.write(device, charUuid, data, withoutResponse: true);
   }
-
 
   Future<void> getAllSleepData(BluetoothDevice device) async {
     final charUuid = ManufactureConstants.writeCharacteristic;
@@ -328,7 +339,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final charUuid = ManufactureConstants.writeCharacteristic;
     final data = await BleSDK.getDetailSleepDataWithMode(
       DataReadingMode.deleteData,
-      null
+      null,
     );
     await bleManager.write(device, charUuid, data, withoutResponse: true);
   }
@@ -339,7 +350,7 @@ class _MyHomePageState extends State<MyHomePage> {
       device,
       ManufactureConstants.writeCharacteristic,
       data,
-      withoutResponse: true
+      withoutResponse: true,
     );
   }
 
@@ -586,9 +597,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                         ),
                                       ),
                                     ),
-                                    SizedBox(
-                                      height: 12,
-                                    ),
+                                    SizedBox(height: 12),
 
                                     SizedBox(
                                       width: double.infinity,
@@ -605,9 +614,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                       ),
                                     ),
 
-                                    SizedBox(
-                                      height: 24,
-                                    ),
+                                    SizedBox(height: 24),
 
                                     SizedBox(
                                       width: double.infinity,
@@ -623,9 +630,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                         ),
                                       ),
                                     ),
-                                    SizedBox(
-                                      height: 12,
-                                    ),
+                                    SizedBox(height: 12),
 
                                     SizedBox(
                                       width: double.infinity,

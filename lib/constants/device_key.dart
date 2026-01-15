@@ -30,6 +30,7 @@ class DeviceKey {
   static const String heartRate = "HeartRate";
   static const String activeMinutes = "ActiveMinutes";
   static const String bloodOxygen = "BloodOxygen";
+  static const String onWrist = "OnWrist";
   static const String arrayX = "arrayX";
   static const String type = "type";
   static const String arrayY = "arrayY";

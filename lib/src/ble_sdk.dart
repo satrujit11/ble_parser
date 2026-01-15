@@ -80,7 +80,6 @@ class BleSDK {
     return (Uint8List(16)..[0] = DeviceConst.CMD_MCU_RESET).withCrc();
   }
 
-
   static Future<Uint8List> getPersonalInfo() async {
     return (Uint8List(16)..[0] = DeviceConst.CMD_GET_USER_INFO).withCrc();
   }
@@ -92,7 +91,6 @@ class BleSDK {
   static Future<Uint8List> getDeviceBattery() async {
     return (Uint8List(16)..[0] = DeviceConst.CMD_GET_BATTERY_LEVEL).withCrc();
   }
-
 
   static Future<Uint8List> setDeviceMeasurementWithType(
       AutoTestMode dataType, int second, bool open) async {
@@ -275,17 +273,20 @@ class BleSDK {
           case 0x01:
             debugPrint(
                 "[INFO - ${DateTime.now().millisecondsSinceEpoch} ] Heart rate");
-            parsedData = ResolveUtil.getMeasurementCallback(bytes, BleConst.measurementHrvCallback);
+            parsedData = ResolveUtil.getMeasurementCallback(
+                bytes, BleConst.measurementHrvCallback);
             break;
           case 0x02:
             debugPrint(
                 "[INFO - ${DateTime.now().millisecondsSinceEpoch} ] HRV");
-            parsedData = ResolveUtil.getMeasurementCallback(bytes, BleConst.measurementHeartCallback);
+            parsedData = ResolveUtil.getMeasurementCallback(
+                bytes, BleConst.measurementHeartCallback);
             break;
           case 0x03:
             debugPrint(
                 "[INFO - ${DateTime.now().millisecondsSinceEpoch} ] SpO2");
-            parsedData = ResolveUtil.getMeasurementCallback(bytes, BleConst.measurementOxygenCallback);
+            parsedData = ResolveUtil.getMeasurementCallback(
+                bytes, BleConst.measurementOxygenCallback);
             break;
         }
         break;

@@ -1,0 +1,67 @@
+import 'package:ble_parser/models/activity_frame.dart';
+
+class WristStateDetector {
+  final int windowSizeSeconds;
+  final List<ActivityFrame> _buffer = [];
+
+  bool? _stableState;
+  int _confidenceCount = 0;
+
+  int? lastSteps;
+
+  WristStateDetector({this.windowSizeSeconds = 30});
+
+  void addFrame(ActivityFrame frame) {
+    _buffer.add(frame);
+
+    final cutoff =
+        DateTime.now().millisecondsSinceEpoch - windowSizeSeconds * 1000;
+
+    _buffer.removeWhere((f) => f.timestamp < cutoff);
+  }
+
+  bool getStableWristState() {
+    final current = _calculateOnWrist();
+
+    if (_stableState == null || _stableState != current) {
+      _confidenceCount++;
+    } else {
+      _confidenceCount = 0;
+    }
+
+    // Require 3 consecutive confirmations
+    if (_confidenceCount >= 3) {
+      _stableState = current;
+      _confidenceCount = 0;
+    }
+
+    return _stableState ?? current;
+  }
+
+  bool _calculateOnWrist() {
+    if (_buffer.length < 10) return false;
+
+    int validHr = 0;
+    int motion = 0;
+    int validSpo2 = 0;
+    double tempSum = 0;
+
+    for (final f in _buffer) {
+      if (f.heartRate >= 45 && f.heartRate <= 180) validHr++;
+      if (f.stepDelta > 0) motion++;
+      if (f.spo2 >= 85) validSpo2++;
+      tempSum += f.temperature;
+    }
+
+    final avgTemp = tempSum / _buffer.length;
+
+    double score = 0;
+    if (validHr / _buffer.length > 0.6) score += 0.35;
+    if (avgTemp >= 30.5) score += 0.25;
+    if (motion >= 2) score += 0.2;
+    if (validSpo2 / _buffer.length > 0.3) score += 0.2;
+
+    return score >= 0.6;
+  }
+}
+

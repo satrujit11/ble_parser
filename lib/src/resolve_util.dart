@@ -170,7 +170,6 @@ class ResolveUtil {
       ),
     );
 
-    
     detector.lastSteps = step;
 
     final onWrist = detector.getStableWristState();

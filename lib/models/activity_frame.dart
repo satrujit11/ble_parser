@@ -15,4 +15,3 @@ class ActivityFrame {
     required this.stepDelta,
   });
 }
-

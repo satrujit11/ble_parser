@@ -1,4 +1,5 @@
 import 'package:ble_parser/models/activity_frame.dart';
+import 'package:flutter/foundation.dart';
 
 class WristStateDetector {
   final int windowSizeSeconds;
@@ -14,9 +15,29 @@ class WristStateDetector {
   void addFrame(ActivityFrame frame) {
     _buffer.add(frame);
 
-    final cutoff =
-        DateTime.now().millisecondsSinceEpoch - windowSizeSeconds * 1000;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final cutoff = now - windowSizeSeconds * 1000;
 
+    // 1️⃣ Identify frames that will be removed
+    final expiredFrames = _buffer.where((f) => f.timestamp < cutoff).toList();
+
+    // 2️⃣ Print them BEFORE removal
+    if (expiredFrames.isNotEmpty) {
+      debugPrint('--- Evicting ${expiredFrames.length} frames ---');
+      for (final f in expiredFrames) {
+        debugPrint(
+          'ts=${DateTime.fromMillisecondsSinceEpoch(f.timestamp)} | '
+          'HR=${f.heartRate} | '
+          'Temp=${f.temperature} | '
+          'SpO2=${f.spo2} | '
+          'Steps=${f.steps} | '
+          'ΔSteps=${f.stepDelta}',
+        );
+      }
+      print('------------------------------');
+    }
+
+    // 3️⃣ Now remove them
     _buffer.removeWhere((f) => f.timestamp < cutoff);
   }
 
@@ -64,4 +85,3 @@ class WristStateDetector {
     return score >= 0.6;
   }
 }
-

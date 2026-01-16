@@ -13,6 +13,7 @@ class WristStateDetector {
   /// User-specific entropy baseline
   double? _learnedEntropyBaseline;
   int _baselineSamples = 0;
+  int lastSteps = 0;
 
   WristStateDetector({this.windowSizeSeconds = 30});
 

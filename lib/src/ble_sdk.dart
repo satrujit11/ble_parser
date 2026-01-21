@@ -121,6 +121,14 @@ class BleSDK {
         .withCrc();
   }
 
+  static Future<Uint8List> ppgWithMode() async {
+    return (Uint8List(16)
+          ..[0] = DeviceConst.CMD_GET_BLOODSUGAR
+          ..[1] = 0x01)
+        .withCrc();
+  }
+
+
   static Future<Uint8List> setAutommaticHRMonitoring(
       AutoHRMonitoring autoHeart, AutoMode? type) async {
     return (Uint8List(16)
@@ -165,14 +173,39 @@ class BleSDK {
   }
 
   static Future<Uint8List> getDetailSleepDataWithMode(
-      DataReadingMode mode, DateTime? dateOfLastData) async {
-    BleCommandState.deleteGetDetailsSleepData =
-        mode == DataReadingMode.deleteData;
+      DataReadingMode mode,
+      DateTime? dateOfLastData
+  ) async {
+
+    BleCommandState.deleteGetDetailsSleepData = mode == DataReadingMode.deleteData;
+
     final value = Uint8List(16)
       ..[0] = DeviceConst.CMD_GET_SLEEP_DATA
       ..[1] = mode.value;
 
     // Insert date only if provided (matches Java behavior)
+    if (dateOfLastData != null) {
+      value[4] = dateOfLastData.year.bleTimeValue;
+      value[5] = dateOfLastData.month.bleTimeValue;
+      value[6] = dateOfLastData.day.bleTimeValue;
+      value[7] = dateOfLastData.hour.bleTimeValue;
+      value[8] = dateOfLastData.minute.bleTimeValue;
+      value[9] = dateOfLastData.second.bleTimeValue;
+    }
+    return value.withCrc();
+  }
+
+  static Future<Uint8List> getOxygenData(
+      DataReadingMode mode,
+      DateTime? dateOfLastData
+  ) async {
+
+    BleCommandState.deleteOxygenData = mode == DataReadingMode.deleteData;
+
+    final value = Uint8List(16)
+      ..[0] = DeviceConst.OXYGEN_DATA
+      ..[1] = mode.value;
+
     if (dateOfLastData != null) {
       value[4] = dateOfLastData.year.bleTimeValue;
       value[5] = dateOfLastData.month.bleTimeValue;
@@ -204,8 +237,6 @@ class BleSDK {
     Map<String, dynamic>? parsedData;
 
     Uint8List bytes = data.bytes;
-
-    debugPrint("[LOG] Device Constant type: ${data[0]}");
 
     switch (data[0]) {
       case DeviceConst.CMD_GET_TIME:
@@ -254,6 +285,16 @@ class BleSDK {
         }
         break;
 
+      case DeviceConst.OXYGEN_DATA:
+        if (BleCommandState.deleteOxygenData) {
+          parsedData = ResolveUtil.deleteData(
+              BleConst.deleteObtainTheDataOfManualBloodOxygenTest);
+          BleCommandState.deleteOxygenData = false;
+        } else {
+          parsedData = ResolveUtil.getOxygenData(bytes);
+        }
+        break;
+
       /// It is clicking two times the button
       case DeviceConst.CMD_START_EXERCISE:
         parsedData = ResolveUtil.doubleClickAction(bytes);
@@ -267,9 +308,17 @@ class BleSDK {
         parsedData = ResolveUtil.mcuReset();
         break;
 
+      case DeviceConst.CMD_GET_BLOODSUGAR:
+        parsedData = ResolveUtil.getBloodSugar(bytes);
+        break;
+
+      case DeviceConst.BLOODSUGAR_DATA:
+        parsedData = ResolveUtil.getBloodSugarHistory(bytes);
+        break;
+
       case DeviceConst.MEASUREMENT_WITH_TYPE:
         debugPrint("[INFO] Measurement with type ${bytes[1]}");
-        switch (bytes[1]) {
+        switch (data[1]) {
           case 0x01:
             debugPrint(
                 "[INFO - ${DateTime.now().millisecondsSinceEpoch} ] Heart rate");

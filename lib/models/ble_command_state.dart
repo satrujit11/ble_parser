@@ -1,6 +1,7 @@
 class BleCommandState {
   static bool deleteGetDetailsSleepData = false;
   static bool deleteTotalActivityDataWithMode = false;
+  static bool deleteOxygenData = false;
 }
 
 enum DataReadingMode {

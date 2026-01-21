@@ -11,7 +11,7 @@ final BleManager bleManager = BleManager();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  FlutterBluePlus.setLogLevel(LogLevel.verbose, color: true);
+  // FlutterBluePlus.setLogLevel(LogLevel.verbose, color: true);
 
   // Global notification listener
   bleManager.notificationStream.listen((event) {
@@ -25,7 +25,7 @@ void main() async {
         // }
         // Do whatever you want with the parsed result
         // debugPrint("[LOG] Device Name: ${device.name}");
-        // debugPrint("[LOG] Device Constant type: ${deviceConst.cmdName}");
+        debugPrint("[LOG] Device Constant type: ${deviceConst.cmdName}");
         // debugPrint("[LOG] Raw data: $rawData");
         // debugPrint("Parsed time: ${parsedData['deviceTime']}");
         // Do database operations here prefereably
@@ -354,6 +354,28 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  Future<void> getOxygenData(BluetoothDevice device) async {
+    final data = await BleSDK.getOxygenData(DataReadingMode.startReading, null);
+    await bleManager.write(
+      device,
+      ManufactureConstants.writeCharacteristic,
+      data,
+      withoutResponse: true,
+    );
+  }
+
+  Future<void> getBloodSugarData(BluetoothDevice device) async {
+    final data =
+        await BleSDK.ppgWithMode();
+    await bleManager.write(
+      device,
+      ManufactureConstants.writeCharacteristic,
+      data,
+      withoutResponse: true,
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -646,6 +668,42 @@ class _MyHomePageState extends State<MyHomePage> {
                                         ),
                                       ),
                                     ),
+
+                                    SizedBox(height: 24),
+
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton.icon(
+                                        onPressed: () async =>
+                                            await getOxygenData(device),
+                                        label: Text("Get Oxygen Data"),
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                          ),
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                      ),
+                                    ),
+
+
+                                    SizedBox(height: 24),
+
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton.icon(
+                                        onPressed: () async =>
+                                            await getBloodSugarData(device),
+                                        label: Text("Get Blood Sugar Data"),
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                          ),
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: 24),
                                   ],
                                 ),
                               ),

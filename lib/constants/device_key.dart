@@ -14,6 +14,8 @@ class DeviceKey {
   static const String kUserDeviceId = "KUserDeviceId";
   static const String tempData = "TempData";
   static const String distanceUnit = "DistanceUnit";
+  static const String time = "Time";
+  static const String PPG = "PPG";
   static const String timeUnit = "TimeUnit";
   static const String wristOn = "WristOn";
   static const String tempUnit = "TempUnit";

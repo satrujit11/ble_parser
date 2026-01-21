@@ -6,6 +6,7 @@ import 'package:ble_parser/models/activity_frame.dart';
 import 'package:ble_parser/models/week.dart';
 import 'package:ble_parser/utils/extensions.dart';
 import 'package:ble_parser/utils/wrist_state_detector.dart';
+import 'package:collection/collection.dart';
 
 final detector = WristStateDetector();
 
@@ -210,6 +211,16 @@ class ResolveUtil {
     };
   }
 
+  static Map<String, dynamic> getBloodSugar(Uint8List value) {
+    return {
+      DeviceKey.dataType: BleConst.bloodGlucoseStatus,
+      DeviceKey.end: true,
+      DeviceKey.data: {
+        DeviceKey.type: value[1].shiftedBy(0).toString(),
+      }
+    };
+  }
+
   static Map<String, dynamic> doubleClickAction(Uint8List value) {
     return {
       DeviceKey.dataType: BleConst.doubleClick,
@@ -401,6 +412,48 @@ class ResolveUtil {
     return result;
   }
 
+  static Map<String, dynamic> getOxygenData(Uint8List value) {
+    final Map<String, dynamic> result = {};
+    result[DeviceKey.dataType] = BleConst.getAutomaticSpo2Monitoring;
+    result[DeviceKey.end] = false;
+
+    final List<Map<String, String>> list = [];
+    result[DeviceKey.data] = list;
+
+    const int count = 10;
+    final int length = value.length;
+    final int size = length ~/ count;
+
+    // No data case
+    if (size == 0) {
+      result[DeviceKey.end] = true;
+      return result;
+    }
+
+    // End flag check
+    if (value[length - 1] == 0xff) {
+      result[DeviceKey.end] = true;
+    }
+
+    for (int i = 0; i < size; i++) {
+      final Map<String, String> hashMap = {};
+
+      String date =
+          "20${value[3 + i * count].bcdToString}-${value[4 + i * count].bcdToString}-${value[5 + i * count].bcdToString} "
+          "${value[6 + i * count].bcdToString}:${value[7 + i * count].bcdToString}:${value[8 + i * count].bcdToString}";
+
+      hashMap[DeviceKey.date] = date;
+
+      // SpO2 value
+      final int spo2 = value[9 + i * count].shiftedBy(0);
+      hashMap[DeviceKey.bloodOxygen] = spo2.toString();
+
+      list.add(hashMap);
+    }
+
+    return result;
+  }
+
   static Map<String, dynamic> getMeasurementCallback(
       Uint8List value, String dataType) {
     return {
@@ -417,4 +470,27 @@ class ResolveUtil {
       }
     };
   }
+
+  static Map<String, dynamic> getBloodSugarHistory(Uint8List value) {
+    final Map<String, dynamic> result = {};
+    result[DeviceKey.dataType] = BleConst.bloodGlucoseData;
+    result[DeviceKey.end] = false;
+
+    final Map<String, dynamic> data = {};
+
+    data[DeviceKey.time] = DateTime.now().millisecondsSinceEpoch.toString();
+    final ppgList = [];
+    if (value.length == 153) {
+      value.sublist(3).slices(3).forEach((element) {
+        final ppg = element[0].shiftedBy(2) + element[1].shiftedBy(1) + element[2].shiftedBy(0);
+        ppgList.add(ppg);
+      });
+      data[DeviceKey.PPG] = ppgList.toString();
+    }
+
+    result[DeviceKey.data] = data;
+
+    return result;
+  }
+
 }
